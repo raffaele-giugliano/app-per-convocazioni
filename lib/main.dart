@@ -96,7 +96,6 @@ class _PaginaPartiteState extends State<PaginaPartite> {
     try {
       final response = await http.get(Uri.parse(urlTabellaPartite));
       if (response.statusCode == 200) {
-        // Parsing delle righe CSV
         List<String> lines = response.body.split(RegExp(r'\r?\n'));
         List<Partita> tempPartite = [];
         DateTime oggi = DateTime.now();
@@ -205,6 +204,7 @@ class PaginaGiocatori extends StatefulWidget {
 class _PaginaGiocatoriState extends State<PaginaGiocatori> {
   List<Giocatore> giocatori = [];
   bool caricamento = true;
+  bool selezionaTutti = true; // Stato del checkbox global "Seleziona tutti"
 
   @override
   void initState() {
@@ -245,6 +245,17 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
     } catch (e) {
       setState(() => caricamento = false);
     }
+  }
+
+  // Funzione per selezionare o deselezionare tutti i giocatori
+  void toggleSelezionaTutti(bool? valore) {
+    bool nuovoStato = valore ?? false;
+    setState(() {
+      selezionaTutti = nuovoStato;
+      for (var g in giocatori) {
+        g.convocato = nuovoStato;
+      }
+    });
   }
 
   Future<void> inviaSuWhatsApp() async {
@@ -303,6 +314,17 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                     child: const Text("Convoca"),
                   ),
                 ),
+                const Divider(height: 1),
+                // Checkbox "Seleziona tutti"
+                CheckboxListTile(
+                  title: const Text(
+                    "Seleziona tutti",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  value: selezionaTutti,
+                  onChanged: toggleSelezionaTutti,
+                ),
+                const Divider(height: 1),
                 Expanded(
                   child: ListView.builder(
                     itemCount: giocatori.length,
@@ -314,6 +336,9 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                         onChanged: (bool? val) {
                           setState(() {
                             g.convocato = val ?? false;
+                            // Se un giocatore viene deselezionato, il check "Seleziona tutti" va a false.
+                            // Se invece tutti i giocatori risultano selezionati, torna a true.
+                            selezionaTutti = giocatori.every((giocatore) => giocatore.convocato);
                           });
                         },
                       );

@@ -30,12 +30,14 @@ class Partita {
   final String dataStringa;
   final String squadraOspitante;
   final String squadraOspite;
+  final String indirizzo; // Aggiunto campo per l'indirizzo
 
   Partita({
     required this.data,
     required this.dataStringa,
     required this.squadraOspitante,
     required this.squadraOspite,
+    required this.indirizzo,
   });
 }
 
@@ -107,6 +109,7 @@ class _PaginaPartiteState extends State<PaginaPartite> {
 
           if (cells.length >= 7) {
             String strData = cells[1].replaceAll('"', '').trim(); // Colonna B (indice 1)
+            String indirizzo = cells[4].replaceAll('"', '').trim(); // Colonna E (indice 4)
             String ospitante = cells[5].replaceAll('"', '').trim(); // Colonna F (indice 5)
             String ospite = cells[6].replaceAll('"', '').trim(); // Colonna G (indice 6)
 
@@ -120,6 +123,7 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                   dataStringa: strData,
                   squadraOspitante: ospitante,
                   squadraOspite: ospite,
+                  indirizzo: indirizzo,
                 ));
               }
             } catch (_) {
@@ -265,8 +269,10 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
         .toList();
 
     String elencoTesto = convocati.join(", ");
+    
+    // Nuovo formato del messaggio richiesto
     String messaggio =
-        "I convocati alla partita che si giocherà in data ${widget.partita.dataStringa} sono: $elencoTesto";
+        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n I convocati sono: $elencoTesto";
 
     await Clipboard.setData(ClipboardData(text: messaggio));
 
@@ -336,8 +342,6 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                         onChanged: (bool? val) {
                           setState(() {
                             g.convocato = val ?? false;
-                            // Se un giocatore viene deselezionato, il check "Seleziona tutti" va a false.
-                            // Se invece tutti i giocatori risultano selezionati, torna a true.
                             selezionaTutti = giocatori.every((giocatore) => giocatore.convocato);
                           });
                         },

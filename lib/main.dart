@@ -268,11 +268,11 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
         .map((g) => "${g.cognome} ${g.nome}")
         .toList();
 
-    String elencoTesto = convocati.join(", ");
+    String elencoTesto = convocati.join("\n");
     
     // Nuovo formato del messaggio richiesto
     String messaggio =
-        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n I convocati sono: $elencoTesto";
+        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n I convocati sono:\n$elencoTesto";
 
     await Clipboard.setData(ClipboardData(text: messaggio));
 

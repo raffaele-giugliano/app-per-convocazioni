@@ -272,7 +272,7 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
     
     // Nuovo formato del messaggio richiesto
     String messaggio =
-        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n I convocati sono:\n$elencoTesto";
+        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n\nI convocati sono:\n$elencoTesto";
 
     await Clipboard.setData(ClipboardData(text: messaggio));
 

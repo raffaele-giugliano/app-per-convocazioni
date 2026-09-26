@@ -30,7 +30,8 @@ class Partita {
   final String dataStringa;
   final String squadraOspitante;
   final String squadraOspite;
-  final String indirizzo; // Aggiunto campo per l'indirizzo
+  final String indirizzo;
+  final String oraRitrovo; // Campo per l'ora di ritrovo (Colonna D)
 
   Partita({
     required this.data,
@@ -38,6 +39,7 @@ class Partita {
     required this.squadraOspitante,
     required this.squadraOspite,
     required this.indirizzo,
+    required this.oraRitrovo,
   });
 }
 
@@ -109,6 +111,7 @@ class _PaginaPartiteState extends State<PaginaPartite> {
 
           if (cells.length >= 7) {
             String strData = cells[1].replaceAll('"', '').trim(); // Colonna B (indice 1)
+            String oraRitrovo = cells[3].replaceAll('"', '').trim(); // Colonna D (indice 3)
             String indirizzo = cells[4].replaceAll('"', '').trim(); // Colonna E (indice 4)
             String ospitante = cells[5].replaceAll('"', '').trim(); // Colonna F (indice 5)
             String ospite = cells[6].replaceAll('"', '').trim(); // Colonna G (indice 6)
@@ -124,6 +127,7 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                   squadraOspitante: ospitante,
                   squadraOspite: ospite,
                   indirizzo: indirizzo,
+                  oraRitrovo: oraRitrovo,
                 ));
               }
             } catch (_) {
@@ -208,7 +212,7 @@ class PaginaGiocatori extends StatefulWidget {
 class _PaginaGiocatoriState extends State<PaginaGiocatori> {
   List<Giocatore> giocatori = [];
   bool caricamento = true;
-  bool selezionaTutti = true; // Stato del checkbox global "Seleziona tutti"
+  bool selezionaTutti = true;
 
   @override
   void initState() {
@@ -228,10 +232,9 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
           List<String> cells = parseCsvLine(line);
 
           if (cells.length >= 2) {
-            String cognome = cells[0].replaceAll('"', '').trim(); // Colonna A
-            String nome = cells[1].replaceAll('"', '').trim(); // Colonna B
+            String cognome = cells[0].replaceAll('"', '').trim();
+            String nome = cells[1].replaceAll('"', '').trim();
 
-            // Filtro per escludere l'intestazione e righe vuote
             if (cognome.isNotEmpty &&
                 nome.isNotEmpty &&
                 cognome.toLowerCase() != 'cognome' &&
@@ -251,7 +254,6 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
     }
   }
 
-  // Funzione per selezionare o deselezionare tutti i giocatori
   void toggleSelezionaTutti(bool? valore) {
     bool nuovoStato = valore ?? false;
     setState(() {
@@ -270,9 +272,10 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
 
     String elencoTesto = convocati.join("\n");
     
-    // Nuovo formato del messaggio richiesto
     String messaggio =
-        "In data ${widget.partita.dataStringa} si giocherà la partita tra ${widget.partita.squadraOspitante} e ${widget.partita.squadraOspite} presso il campo che si trova a questo indirizzo: ${widget.partita.indirizzo}.\n\nI convocati sono:\n$elencoTesto";
+        "In data *${widget.partita.dataStringa}* si giocherà la partita tra *${widget.partita.squadraOspitante}* e *${widget.partita.squadraOspite}* presso il campo che si trova a questo *indirizzo*: ${widget.partita.indirizzo}.\n"
+        "Il ritrovo è direttamente al campo alle ore *${widget.partita.oraRitrovo}*\n\n"
+        "*Convocati*:\n$elencoTesto";
 
     await Clipboard.setData(ClipboardData(text: messaggio));
 
@@ -321,7 +324,6 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                   ),
                 ),
                 const Divider(height: 1),
-                // Checkbox "Seleziona tutti"
                 CheckboxListTile(
                   title: const Text(
                     "Seleziona tutti",

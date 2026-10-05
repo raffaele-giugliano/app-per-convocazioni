@@ -148,23 +148,23 @@ class _PaginaPartiteState extends State<PaginaPartite> {
         }
 
         // Calcola l'indice della prima partita con data >= oggi
-        int prosiimaIndex = tempPartite.indexWhere((p) =>
+        int prossimaIndex = tempPartite.indexWhere((p) =>
             p.data.isAfter(soloOggi) || p.data.isAtSameMomentAs(soloOggi));
 
         setState(() {
           partite = tempPartite;
           caricamento = false;
-          indiceProssimaPartita = prosiimaIndex;
-          if (prosiimaIndex != -1) {
-            partitaSelezionata = tempPartite[prosiimaIndex];
+          indiceProssimaPartita = prossimaIndex;
+          if (prossimaIndex != -1) {
+            partitaSelezionata = tempPartite[prossimaIndex];
           }
         });
 
         // Esegue lo scroll automatico verso la partita evidenziata
-        if (prosiimaIndex > 0) {
+        if (prossimaIndex > 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollController.animateTo(
-              prosiimaIndex * 72.0, // Altezza approssimativa di ciascun elemento della lista
+              prossimaIndex * 72.0, // Altezza stimata dell'elemento
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeInOut,
             );

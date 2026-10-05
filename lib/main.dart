@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import per gestire la Clipboard
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const String urlTabellaPartite = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA-oDFCDZIShzqfWXWlxsl1UZjQnlJrR3nmg6c82n9jBFKv5VHb3_RDLUQCAxQpZpJZDki4vVGPdbq/pub?gid=0&single=true&output=csv';
-const String urlTabellaGiocatori = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA-oDFCDZIShzqfWXWlxsl1UZjQnlJrR3nmg6c82n9jBFKv5VHb3_RDLUQCAxQpZpJZDki4vVGPdbq/pub?gid=1093465003&single=true&output=csv';
+const String urlTabellaPartite =
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA-oDFCDZIShzqfWXWlxsl1UZjQnlJrR3nmg6c82n9jBFKv5VHb3_RDLUQCAxQpZpJZDki4vVGPdbq/pub?gid=0&single=true&output=csv';
+const String urlTabellaGiocatori =
+    'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA-oDFCDZIShzqfWXWlxsl1UZjQnlJrR3nmg6c82n9jBFKv5VHb3_RDLUQCAxQpZpJZDki4vVGPdbq/pub?gid=1093465003&single=true&output=csv';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +20,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Gestione Partite',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
       home: const PaginaPartite(),
     );
   }
@@ -31,7 +36,7 @@ class Partita {
   final String squadraOspitante;
   final String squadraOspite;
   final String indirizzo;
-  final String oraRitrovo; // Campo per l'ora di ritrovo (Colonna D)
+  final String oraRitrovo;
 
   Partita({
     required this.data,
@@ -89,11 +94,19 @@ class _PaginaPartiteState extends State<PaginaPartite> {
   List<Partita> partite = [];
   Partita? partitaSelezionata;
   bool caricamento = true;
+  int indiceProssimaPartita = -1;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     caricaPartite();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> caricaPartite() async {
@@ -110,36 +123,53 @@ class _PaginaPartiteState extends State<PaginaPartite> {
           List<String> cells = parseCsvLine(line);
 
           if (cells.length >= 7) {
-            String strData = cells[1].replaceAll('"', '').trim(); // Colonna B (indice 1)
-            String oraRitrovo = cells[3].replaceAll('"', '').trim(); // Colonna D (indice 3)
-            String indirizzo = cells[4].replaceAll('"', '').trim(); // Colonna E (indice 4)
-            String ospitante = cells[5].replaceAll('"', '').trim(); // Colonna F (indice 5)
-            String ospite = cells[6].replaceAll('"', '').trim(); // Colonna G (indice 6)
+            String strData = cells[1].replaceAll('"', '').trim();
+            String oraRitrovo = cells[3].replaceAll('"', '').trim();
+            String indirizzo = cells[4].replaceAll('"', '').trim();
+            String ospitante = cells[5].replaceAll('"', '').trim();
+            String ospite = cells[6].replaceAll('"', '').trim();
 
             try {
               DateFormat format = DateFormat("dd-MM-yyyy");
               DateTime dataPartita = format.parse(strData);
 
-              if (dataPartita.isAfter(soloOggi) || dataPartita.isAtSameMomentAs(soloOggi)) {
-                tempPartite.add(Partita(
-                  data: dataPartita,
-                  dataStringa: strData,
-                  squadraOspitante: ospitante,
-                  squadraOspite: ospite,
-                  indirizzo: indirizzo,
-                  oraRitrovo: oraRitrovo,
-                ));
-              }
+              tempPartite.add(Partita(
+                data: dataPartita,
+                dataStringa: strData,
+                squadraOspitante: ospitante,
+                squadraOspite: ospite,
+                indirizzo: indirizzo,
+                oraRitrovo: oraRitrovo,
+              ));
             } catch (_) {
               // Salta l'intestazione o righe con date non valide
             }
           }
         }
 
+        // Calcola l'indice della prima partita con data >= oggi
+        int prosiimaIndex = tempPartite.indexWhere((p) =>
+            p.data.isAfter(soloOggi) || p.data.isAtSameMomentAs(soloOggi));
+
         setState(() {
           partite = tempPartite;
           caricamento = false;
+          indiceProssimaPartita = prosiimaIndex;
+          if (prosiimaIndex != -1) {
+            partitaSelezionata = tempPartite[prosiimaIndex];
+          }
         });
+
+        // Esegue lo scroll automatico verso la partita evidenziata
+        if (prosiimaIndex > 0) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollController.animateTo(
+              prosiimaIndex * 72.0, // Altezza approssimativa di ciascun elemento della lista
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+            );
+          });
+        }
       }
     } catch (e) {
       setState(() => caricamento = false);
@@ -164,32 +194,98 @@ class _PaginaPartiteState extends State<PaginaPartite> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("partite da giocare")),
+      appBar: AppBar(title: const Text("Partite da giocare")),
       body: caricamento
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    onPressed: confermaSelezione,
-                    child: const Text("Conferma Partita"),
+                  padding: const EdgeInsets.all(12.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: confermaSelezione,
+                      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                      label: const Text(
+                        "CONFERMA PARTITA",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+                const Divider(height: 1),
                 Expanded(
                   child: ListView.builder(
+                    controller: _scrollController,
                     itemCount: partite.length,
                     itemBuilder: (context, index) {
                       final p = partite[index];
-                      return RadioListTile<Partita>(
-                        title: Text("${p.dataStringa} - ${p.squadraOspitante} vs ${p.squadraOspite}"),
-                        value: p,
-                        groupValue: partitaSelezionata,
-                        onChanged: (Partita? val) {
-                          setState(() {
-                            partitaSelezionata = val;
-                          });
-                        },
+                      final bool isProssima = (index == indiceProssimaPartita);
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isProssima ? Colors.blue.shade50 : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: isProssima
+                              ? Border.all(color: Colors.blue.shade600, width: 2)
+                              : Border.all(color: Colors.grey.shade300, width: 0.5),
+                        ),
+                        child: RadioListTile<Partita>(
+                          title: Row(
+                            children: [
+                              Text(
+                                p.dataStringa,
+                                style: TextStyle(
+                                  fontWeight: isProssima ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                              if (isProssima) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade700,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    "PROSSIMA PARTITA",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          subtitle: Text(
+                            "${p.squadraOspitante} vs ${p.squadraOspite}",
+                            style: TextStyle(
+                              color: isProssima ? Colors.blue.shade900 : Colors.black87,
+                            ),
+                          ),
+                          value: p,
+                          groupValue: partitaSelezionata,
+                          onChanged: (Partita? val) {
+                            setState(() {
+                              partitaSelezionata = val;
+                            });
+                          },
+                        ),
                       );
                     },
                   ),
@@ -271,7 +367,7 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
         .toList();
 
     String elencoTesto = convocati.join("\n");
-    
+
     String messaggio =
         "In data *${widget.partita.dataStringa}* si giocherà la partita tra *${widget.partita.squadraOspitante}* e *${widget.partita.squadraOspite}* presso il campo che si trova a questo *indirizzo*: ${widget.partita.indirizzo}.\n"
         "Il ritrovo è direttamente al campo alle ore *${widget.partita.oraRitrovo}*\n\n"
@@ -304,25 +400,46 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("giocatori")),
+      appBar: AppBar(title: const Text("Giocatori")),
       body: caricamento
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 const Padding(
-                  padding: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: Text(
                     "Seleziona i giocatori convocati e premi il bottone 'Convoca'",
                     textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.black87),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: ElevatedButton(
-                    onPressed: inviaSuWhatsApp,
-                    child: const Text("Convoca"),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: inviaSuWhatsApp,
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      label: const Text(
+                        "CONVOCA (INVIA SU WHATSAPP)",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 8),
                 const Divider(height: 1),
                 CheckboxListTile(
                   title: const Text(

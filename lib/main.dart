@@ -258,46 +258,51 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                                   color: Colors.grey.shade300, width: 0.5),
                         ),
                         child: RadioListTile<Partita>(
-                          title: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  p.dataStringa,
-                                  style: TextStyle(
-                                    fontWeight: isProssima
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                              if (isProssima) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade700,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    "PROSSIMA PARTITA",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                          title: isProssima
+                              ? Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade700,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      "PROSSIMA PARTITA",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
+                                )
+                              : const SizedBox.shrink(),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.dataStringa,
+                                style: TextStyle(
+                                  fontWeight: isProssima
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  fontSize: 15,
+                                  color: Colors.black87,
                                 ),
-                              ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "${p.squadraOspitante} vs ${p.squadraOspite}",
+                                style: TextStyle(
+                                  color: isProssima
+                                      ? Colors.blue.shade900
+                                      : Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ],
-                          ),
-                          subtitle: Text(
-                            "${p.squadraOspitante} vs ${p.squadraOspite}",
-                            style: TextStyle(
-                              color: isProssima
-                                  ? Colors.blue.shade900
-                                  : Colors.black87,
-                            ),
                           ),
                           value: p,
                           groupValue: partitaSelezionata,
@@ -497,5 +502,4 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
             ),
     );
   }
-  // test
 }

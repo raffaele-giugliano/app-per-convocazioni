@@ -82,6 +82,21 @@ List<String> parseCsvLine(String line) {
   return result;
 }
 
+// Helper per aggiungere il giorno della settimana in italiano alla data
+String formattaDataConGiorno(String strData, DateTime dataPartita) {
+  const giorniSettimana = [
+    'Lunedì',
+    'Martedì',
+    'Mercoledì',
+    'Giovedì',
+    'Venerdì',
+    'Sabato',
+    'Domenica',
+  ];
+  final nomeGiorno = giorniSettimana[dataPartita.weekday - 1];
+  return '$strData - $nomeGiorno';
+}
+
 // --- PAGINA 1: Partite da giocare ---
 class PaginaPartite extends StatefulWidget {
   const PaginaPartite({super.key});
@@ -132,10 +147,12 @@ class _PaginaPartiteState extends State<PaginaPartite> {
             try {
               DateFormat format = DateFormat("dd-MM-yyyy");
               DateTime dataPartita = format.parse(strData);
+              String dataFormattata =
+                  formattaDataConGiorno(strData, dataPartita);
 
               tempPartite.add(Partita(
                 data: dataPartita,
-                dataStringa: strData,
+                dataStringa: dataFormattata,
                 squadraOspitante: ospitante,
                 squadraOspite: ospite,
                 indirizzo: indirizzo,
@@ -206,7 +223,8 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                     height: 50,
                     child: ElevatedButton.icon(
                       onPressed: confermaSelezione,
-                      icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+                      icon: const Icon(Icons.check_circle_outline,
+                          color: Colors.white),
                       label: const Text(
                         "CONFERMA PARTITA",
                         style: TextStyle(
@@ -235,27 +253,37 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                       final bool isProssima = (index == indiceProssimaPartita);
 
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isProssima ? Colors.blue.shade50 : Colors.transparent,
+                          color: isProssima
+                              ? Colors.blue.shade50
+                              : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
                           border: isProssima
-                              ? Border.all(color: Colors.blue.shade600, width: 2)
-                              : Border.all(color: Colors.grey.shade300, width: 0.5),
+                              ? Border.all(
+                                  color: Colors.blue.shade600, width: 2)
+                              : Border.all(
+                                  color: Colors.grey.shade300, width: 0.5),
                         ),
                         child: RadioListTile<Partita>(
                           title: Row(
                             children: [
-                              Text(
-                                p.dataStringa,
-                                style: TextStyle(
-                                  fontWeight: isProssima ? FontWeight.bold : FontWeight.normal,
+                              Flexible(
+                                child: Text(
+                                  p.dataStringa,
+                                  style: TextStyle(
+                                    fontWeight: isProssima
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
                               ),
                               if (isProssima) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: Colors.blue.shade700,
                                     borderRadius: BorderRadius.circular(4),
@@ -275,7 +303,9 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                           subtitle: Text(
                             "${p.squadraOspitante} vs ${p.squadraOspite}",
                             style: TextStyle(
-                              color: isProssima ? Colors.blue.shade900 : Colors.black87,
+                              color: isProssima
+                                  ? Colors.blue.shade900
+                                  : Colors.black87,
                             ),
                           ),
                           value: p,
@@ -369,7 +399,10 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
     String elencoTesto = convocati.join("\n");
 
     String messaggio =
-        "In data *${widget.partita.dataStringa}* si giocherà la partita tra *${widget.partita.squadraOspitante}* e *${widget.partita.squadraOspite}* presso il campo che si trova a questo *indirizzo*: ${widget.partita.indirizzo}.\n"
+        "In data *${widget.partita.dataStringa}* si giocherà la partita tra *"
+        "${widget.partita.squadraOspitante}* e *"
+        "${widget.partita.squadraOspite}* presso il campo che si trova a questo *indirizzo*: "
+        "${widget.partita.indirizzo}.\n"
         "Il ritrovo è direttamente al campo alle ore *${widget.partita.oraRitrovo}*\n\n"
         "*Convocati*:\n$elencoTesto";
 
@@ -414,7 +447,8 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 4.0),
                   child: SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -461,7 +495,8 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
                         onChanged: (bool? val) {
                           setState(() {
                             g.convocato = val ?? false;
-                            selezionaTutti = giocatori.every((giocatore) => giocatore.convocato);
+                            selezionaTutti = giocatori
+                                .every((giocatore) => giocatore.convocato);
                           });
                         },
                       );

@@ -29,7 +29,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Model per la partita
 class Partita {
   final DateTime data;
   final String dataStringa;
@@ -48,7 +47,6 @@ class Partita {
   });
 }
 
-// Model per il giocatore
 class Giocatore {
   final String cognome;
   final String nome;
@@ -61,7 +59,6 @@ class Giocatore {
   });
 }
 
-// Helper per dividere la riga CSV gestendo eventuali virgolette
 List<String> parseCsvLine(String line) {
   List<String> result = [];
   StringBuffer current = StringBuffer();
@@ -82,7 +79,6 @@ List<String> parseCsvLine(String line) {
   return result;
 }
 
-// Helper per aggiungere il giorno della settimana in italiano alla data
 String formattaDataConGiorno(String strData, DateTime dataPartita) {
   const giorniSettimana = [
     'Lunedì',
@@ -97,7 +93,6 @@ String formattaDataConGiorno(String strData, DateTime dataPartita) {
   return '$strData - $nomeGiorno';
 }
 
-// --- PAGINA 1: Partite da giocare ---
 class PaginaPartite extends StatefulWidget {
   const PaginaPartite({super.key});
 
@@ -158,13 +153,10 @@ class _PaginaPartiteState extends State<PaginaPartite> {
                 indirizzo: indirizzo,
                 oraRitrovo: oraRitrovo,
               ));
-            } catch (_) {
-              // Salta l'intestazione o righe con date non valide
-            }
+            } catch (_) {}
           }
         }
 
-        // Calcola l'indice della prima partita con data >= oggi
         int prossimaIndex = tempPartite.indexWhere((p) =>
             p.data.isAfter(soloOggi) || p.data.isAtSameMomentAs(soloOggi));
 
@@ -177,11 +169,10 @@ class _PaginaPartiteState extends State<PaginaPartite> {
           }
         });
 
-        // Esegue lo scroll automatico verso la partita evidenziata
         if (prossimaIndex > 0) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollController.animateTo(
-              prossimaIndex * 72.0, // Altezza stimata dell'elemento
+              prossimaIndex * 72.0,
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeInOut,
             );
@@ -326,7 +317,6 @@ class _PaginaPartiteState extends State<PaginaPartite> {
   }
 }
 
-// --- PAGINA 2: Selezione Giocatori ---
 class PaginaGiocatori extends StatefulWidget {
   final Partita partita;
   const PaginaGiocatori({super.key, required this.partita});
@@ -507,5 +497,4 @@ class _PaginaGiocatoriState extends State<PaginaGiocatori> {
             ),
     );
   }
-//test
 }
